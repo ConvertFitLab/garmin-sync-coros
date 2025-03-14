@@ -53,6 +53,10 @@ def garmin_to_cors():
     garminClient, corosClient, db = getClient()
     garminClient.upload_to_coros(corosClient, db)
 
+# 将佳明运动记录保存下载到本地
+def garmin_to_local():
+    garminClient, corosClient, db = getClient()
+    garminClient.download_to_local()
 
 # 将高驰运动记录导入到佳明
 def coros_to_garmin():
@@ -66,5 +70,7 @@ if __name__ == "__main__":
     logger.warning(f"data source: {str(source)}")
     if source == 'COROS':
         coros_to_garmin()
+    elif source == 'GARMIN2LOCAL':
+        garmin_to_local()
     else:
         garmin_to_cors()

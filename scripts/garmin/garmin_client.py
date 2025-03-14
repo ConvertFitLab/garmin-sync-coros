@@ -52,6 +52,9 @@ class GarminClient:
         # 起始同步时间
         sync_start_time_ts = int(SYNC_CONFIG["GARMIN_START_TIME"]) if SYNC_CONFIG["GARMIN_START_TIME"].strip() else 0
         while True:
+            # 当start超过10000时接口请求返回http 400
+            # if start >= 10000:
+            #     return all_activities
             activityInfoList = self.getActivities(start=start, limit=100)
             activityList = []
             for activityInfo in activityInfoList:
@@ -123,6 +126,7 @@ class GarminClient:
                 file_path = os.path.join(GARMIN_FIT_DIR, f"{un_sync_id}.zip")
                 with open(file_path, "wb") as fb:
                     fb.write(file)
+                    logger.warning(f"loaded garmin {un_sync_id} {file_path}.")
                 logger.warning(f"uploading garmin {un_sync_id} {file_path}.")
                 upload_result = corosClient.uploadActivity(file_path)
 
@@ -133,6 +137,23 @@ class GarminClient:
                 print(err)
                 db.updateExceptionSyncStatus(un_sync_id, 'garmin')
                 logger.warning(f"sync garmin ${un_sync_id} exception.")
+
+    @login
+    def download_to_local(self):
+        all_activities = self.getAllActivities()
+        if all_activities == None or len(all_activities) == 0:
+            logger.warning("has no garmin activities.")
+            exit()
+        for activity in all_activities:
+            activity_id = activity["activityId"]
+            try:
+                file = self.downloadFitActivity(activity_id)
+                file_path = os.path.join(GARMIN_FIT_DIR, f"{activity_id}.zip")
+                with open(file_path, "wb") as fb:
+                    fb.write(file)
+                    logger.warning(f"loaded garmin {activity_id} {file_path}.")
+            except Exception as err:
+                print(err)
 
 
 class ActivityUploadFormat(Enum):
