@@ -1,6 +1,9 @@
 import logging
 import os
 from enum import Enum, auto
+import re
+import time
+import zipfile
 
 import garth
 
@@ -77,6 +80,13 @@ class GarminClient:
         response = self.download(download_fit_activity_url)
         return response
 
+    ## 下载tcx格式的运动
+    def downloadTcxActivity(self, activity):
+        download_fit_activity_url_prefix = GARMIN_URL_DICT["garmin_connect_tcx_download"]
+        download_fit_activity_url = f"{download_fit_activity_url_prefix}/{activity}"
+        response = self.download(download_fit_activity_url)
+        return response
+
     @login
     def upload_activity(self, activity_path: str):
         """Upload activity in fit format from file."""
@@ -144,16 +154,50 @@ class GarminClient:
         if all_activities == None or len(all_activities) == 0:
             logger.warning("has no garmin activities.")
             exit()
+
+        ts_str = re.sub(r'(\.\d*)?', '', str(time.time())) + '000'
+        user_download_path = os.path.join(GARMIN_FIT_DIR, f"fit_{ts_str}_download")
+        print('download to', user_download_path)
+        if not os.path.exists(user_download_path):
+            os.makedirs(user_download_path)
+
+        user_file_data_path = os.path.join(user_download_path, 'files')
+        if not os.path.exists(user_file_data_path):
+            os.makedirs(user_file_data_path)
+
         for activity in all_activities:
             activity_id = activity["activityId"]
-            try:
-                file = self.downloadFitActivity(activity_id)
-                file_path = os.path.join(GARMIN_FIT_DIR, f"{activity_id}.zip")
-                with open(file_path, "wb") as fb:
-                    fb.write(file)
-                    logger.warning(f"loaded garmin {activity_id} {file_path}.")
-            except Exception as err:
-                print(err)
+            self.download_tcx_local(activity_id, user_download_path, user_file_data_path)
+
+    def download_fit_local(self, activity_id, user_download_path, user_file_data_path):
+        try:
+            file = self.downloadFitActivity(activity_id)
+            file_path = os.path.join(user_download_path, f"{activity_id}.zip")
+            with open(file_path, "wb") as fb:
+                fb.write(file)
+                logger.warning(f"loaded garmin {activity_id} {file_path}.")
+
+                os.fsync(fb.fileno())  #  确保数据写入硬盘x
+
+                # TODO 解压会出现异常。。。
+                # with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                #     print('ff', zip_ref.namelist())
+                #     zip_ref.extractall(user_file_data_path)
+                #     logger.warning(f"extract loaded garmin {activity_id} {user_file_data_path}.")
+
+        except Exception as err:
+            print(err)
+
+
+    def download_tcx_local(self, activity_id, user_download_path, user_file_data_path):
+        try:
+            file = self.downloadTcxActivity(activity_id)
+            file_path = os.path.join(user_file_data_path, f"{activity_id}.tcx")
+            with open(file_path, "wb") as fb:
+                fb.write(file)
+                logger.warning(f"loaded garmin {activity_id} {user_file_data_path}")
+        except Exception as err:
+            print(err)
 
 
 class ActivityUploadFormat(Enum):
