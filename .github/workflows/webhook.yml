@@ -31,6 +31,11 @@ jobs:
           echo ${{ github.event.inputs.type }}
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_TOKEN }}  # 使用PAT，有权限写私有仓库
+      - name: Debug token
+        run: |
+          echo "Token starts with: ${{ secrets.PERSONAL_TOKEN }}"
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
@@ -51,9 +56,6 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r requirements.txt
         if: steps.pip-cache.outputs.cache-hit != 'true'
-      - name: Run Garmin or Coros Sync
-        run: |
-          python scripts/garmin-sync-coros.py GARMIN
       - name: Push new cookie
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
