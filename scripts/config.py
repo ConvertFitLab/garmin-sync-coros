@@ -28,7 +28,7 @@ def get_argv():
     parser.add_argument("--COROS_EMAIL", default="")
     parser.add_argument("--COROS_PASSWORD", default="")
     parser.add_argument("--COROS_START_TIME", default="")
-    parser.add_argument("--DB_NAME", default=f"{time.time()}.db")
+    parser.add_argument("--DB_NAME", default="")
     return parser.parse_args()
 
 
