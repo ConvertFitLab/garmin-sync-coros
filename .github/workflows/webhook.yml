@@ -58,7 +58,10 @@ jobs:
         if: steps.pip-cache.outputs.cache-hit != 'true'
       - name: Create or update a file for testing
         run: |
-          echo "GitHub Actions ran a test text" >> test-commit.txt
+          # 获取当前时间，确保每次提交内容都不同
+          TIMESTAMP=$(date +"%Y-%m-%d %H:%M:%S")
+          # 将内容追加到 test-commit.txt 文件
+          echo "GitHub Actions ran a test at $TIMESTAMP" >> test-commit.txt
       - name: Push new cookie
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"

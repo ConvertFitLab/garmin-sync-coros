@@ -25,10 +25,11 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_TOKEN }}  # 使用PAT，有权限写私有仓库
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
-          token: ${{ secrets.PERSONAL_TOKEN }}  # 使用PAT，有权限写私有仓库
           python-version: '3.10'
       # from pdm
       - name: Set Variables
@@ -49,10 +50,10 @@ jobs:
       - name: Run Garmin or Coros Sync
         run: |
           python scripts/garmin-sync-coros.py GARMIN
-      - name: Push new cookie
+      - name: Commit && Push
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
           git config --local user.name "${{ env.GITHUB_NAME }}"
           git add .
-          git commit -m 'update garmin activity' || echo "nothing to commit"
+          git commit -m "update GARMIN activity" || echo "nothing to commit"
           git push || echo "nothing to push"

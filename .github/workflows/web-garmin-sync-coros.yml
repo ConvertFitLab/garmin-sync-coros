@@ -50,6 +50,8 @@ jobs:
           echo SOURCE=${{ github.event.inputs.SOURCE }} GARMIN_EMAIL=${{ github.event.inputs.GARMIN_EMAIL }} COROS_EMAIL=${{ github.event.inputs.COROS_EMAIL }}
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.PERSONAL_TOKEN }}  # 使用PAT，有权限写私有仓库
       - name: Set up Python 3.10
         uses: actions/setup-python@v5
         with:
@@ -73,10 +75,10 @@ jobs:
       - name: Run Garmin or Coros Sync
         run: |
           python scripts/garmin-sync-coros.py ${{inputs.SOURCE}} --GARMIN_EMAIL ${{inputs.GARMIN_EMAIL}} --GARMIN_PASSWORD ${{inputs.GARMIN_PASSWORD}} --GARMIN_AUTH_DOMAIN ${{inputs.GARMIN_AUTH_DOMAIN}} --GARMIN_START_TIME ${{inputs.GARMIN_START_TIME}} --COROS_EMAIL ${{inputs.COROS_EMAIL}} --COROS_PASSWORD ${{inputs.COROS_PASSWORD}} --COROS_START_TIME ${{inputs.COROS_START_TIME}} --DB_NAME ${{inputs.DB_NAME}}
-      - name: Push new cookie
+      - name: Commit && Push
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
           git config --local user.name "${{ env.GITHUB_NAME }}"
           git add .
-          git commit -m 'update garmin activity' || echo "nothing to commit"
+          git commit -m "update ${{inputs.SOURCE}} activity, GARMIN_EMAIL=${{inputs.GARMIN_EMAIL}} COROS_EMAIL=${{inputs.COROS_EMAIL}}" || echo "nothing to commit"
           git push || echo "nothing to push"
