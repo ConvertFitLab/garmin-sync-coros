@@ -6,6 +6,10 @@ import hashlib
 import logging
 
 from config import SYNC_CONFIG, COROS_FIT_DIR
+import re
+import time
+
+from scripts.convert_util import make_zip, upload_zip_to_convert
 
 logger = logging.getLogger(__name__)
 
@@ -115,7 +119,10 @@ class CorosClient:
                 headers=self.getHeaders()
             )
             down_response = json.loads(response.data)
-            return down_response["data"]["fileUrl"]
+            if down_response.get("data") and down_response["data"]["fileUrl"]:
+                return down_response["data"]["fileUrl"]
+            else:
+                return None
         except Exception as err:
             exit()
 
@@ -204,6 +211,13 @@ class CorosClient:
             logger.warning("has no un sync coros activities.")
             exit()
         logger.warning(f"has {len(un_sync_id_list)} un sync coros activities.")
+
+        ts_str = re.sub(r'(\.\d*)?', '', str(time.time())) + '000'
+        user_download_path = os.path.join(COROS_FIT_DIR, f"fit_{ts_str}_coros_download")
+        print('download to', user_download_path)
+        if not os.path.exists(user_download_path):
+            os.makedirs(user_download_path)
+
         for un_sync_id in un_sync_id_list:
             try:
                 download_url = self.find_url_from_id(all_activities, str(un_sync_id))
@@ -213,7 +227,7 @@ class CorosClient:
                     continue 
                 
                 fileResponse = self.download(download_url)
-                file_path = os.path.join(COROS_FIT_DIR, f"{un_sync_id}.fit")
+                file_path = os.path.join(user_download_path, f"{un_sync_id}.fit")
                 with open(file_path, "wb") as fb:
                     fb.write(fileResponse.data)
                 
@@ -248,6 +262,64 @@ class CorosClient:
             print(err)
             db.updateExceptionSyncStatus(un_sync_id, 'coros')
             logger.warning(f"sync coros ${un_sync_id} exception.")
+
+    def upload_to_convert(self, db):
+        all_activities = self.getAllActivities()
+        if all_activities is None or len(all_activities) == 0:
+            logger.warning("has no coros activities.")
+            exit()
+        logger.warning(f"has {len(all_activities)} all activities.")
+        for activity in all_activities:
+            activity_id = activity[0]
+            db.saveActivity(activity_id, 'coros')
+
+        un_download_id_list = db.getUnDownloadActivity('coros')
+        if un_download_id_list is None or len(un_download_id_list) == 0:
+            logger.warning("has no un download coros activities.")
+            exit()
+        logger.warning(f"has {len(un_download_id_list)} un download coros activities.")
+
+        ts_str = re.sub(r'(\.\d*)?', '', str(time.time())) + '000'
+        user_download_path = os.path.join(COROS_FIT_DIR, f"fit_{ts_str}_coros_download")
+        print('download to', user_download_path)
+        if not os.path.exists(user_download_path):
+            os.makedirs(user_download_path)
+
+        for un_download_id in un_download_id_list:
+            try:
+                download_url = self.find_url_from_id(all_activities, str(un_download_id))
+                if download_url is None:
+                    # 未找到对应的下载链接也视为同步
+                    logger.warning(f"coros ${un_download_id} download url missing.")
+                    continue
+
+                fileResponse = self.download(download_url)
+                file_path = os.path.join(user_download_path, f"{un_download_id}.fit")
+                with open(file_path, "wb") as fb:
+                    fb.write(fileResponse.data)
+
+                self.update_download_status(db, un_download_id)
+            except Exception as err:
+                print(err)
+                logging.warning(f"download coros {un_download_id} activity fail: {err}")
+
+        #  压缩
+        zip_file_path = f"{user_download_path}/all.zip"
+        make_zip(zip_file_path, user_download_path)
+        # 转换
+        upload_zip_to_convert(zip_file_path)
+        print('download_to_convert over', user_download_path);
+
+    # 更新数据库同步状态
+    @staticmethod
+    def update_download_status(db, un_download_id):
+        try:
+            db.updateDownloadStatus(un_download_id, 'coros')
+            logger.warning(f"download coros ${un_download_id} success.")
+        except Exception as err:
+            print(err)
+            db.updateExceptionDownloadStatus(un_download_id, 'coros')
+            logger.warning(f"download coros ${un_download_id} exception.")
                 
 
 

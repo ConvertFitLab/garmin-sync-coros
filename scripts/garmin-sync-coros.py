@@ -58,10 +58,20 @@ def garmin_to_local():
     garminClient, corosClient, db = getClient()
     garminClient.download_to_local()
 
+# 将佳明运动记录保存下载后转换
+def garmin_to_convert():
+    garminClient, corosClient, db = getClient()
+    garminClient.download_to_convert(db)
+
 # 将高驰运动记录导入到佳明
 def coros_to_garmin():
     garminClient, corosClient, db = getClient()
     corosClient.uploadToGarmin(garminClient, db)
+
+# 将高驰运动记录保存下载后转换
+def coros_to_convert():
+    garminClient, corosClient, db = getClient()
+    corosClient.upload_to_convert(db)
 
 
 if __name__ == "__main__":
@@ -70,7 +80,11 @@ if __name__ == "__main__":
     logger.warning(f"data source: {str(source)}")
     if source == 'COROS':
         coros_to_garmin()
+    elif source == 'COROS2CONVERT':
+        coros_to_convert()
     elif source == 'GARMIN2LOCAL':
         garmin_to_local()
+    elif source == 'GARMIN2CONVERT':
+        garmin_to_convert()
     else:
         garmin_to_cors()

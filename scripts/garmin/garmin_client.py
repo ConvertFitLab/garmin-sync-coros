@@ -10,6 +10,8 @@ import garth
 from garmin_url_dict import GARMIN_URL_DICT
 from config import SYNC_CONFIG, GARMIN_FIT_DIR
 
+from scripts.convert_util import upload_zip_to_convert, make_zip
+
 logger = logging.getLogger(__name__)
 
 
@@ -156,7 +158,7 @@ class GarminClient:
             exit()
 
         ts_str = re.sub(r'(\.\d*)?', '', str(time.time())) + '000'
-        user_download_path = os.path.join(GARMIN_FIT_DIR, f"fit_{ts_str}_download")
+        user_download_path = os.path.join(GARMIN_FIT_DIR, f"fit_{ts_str}_garmin_download")
         print('download to', user_download_path)
         if not os.path.exists(user_download_path):
             os.makedirs(user_download_path)
@@ -167,29 +169,41 @@ class GarminClient:
 
         for activity in all_activities:
             activity_id = activity["activityId"]
-            self.download_tcx_local(activity_id, user_download_path, user_file_data_path)
+            self.download_fit_to_local(activity_id, user_download_path, user_file_data_path)
 
-    def download_fit_local(self, activity_id, user_download_path, user_file_data_path):
+        # 压缩
+        zip_file_path = f"{user_download_path}/all.zip"
+        make_zip(zip_file_path, user_file_data_path)
+
+
+    def download_fit_to_local(self, activity_id, user_download_path, user_file_data_path):
+        file_path = os.path.join(user_download_path, f"{activity_id}.zip")
+
         try:
             file = self.downloadFitActivity(activity_id)
-            file_path = os.path.join(user_download_path, f"{activity_id}.zip")
             with open(file_path, "wb") as fb:
                 fb.write(file)
                 logger.warning(f"loaded garmin {activity_id} {file_path}.")
 
                 os.fsync(fb.fileno())  #  确保数据写入硬盘x
 
-                # TODO 解压会出现异常。。。
-                # with zipfile.ZipFile(file_path, 'r') as zip_ref:
-                #     print('ff', zip_ref.namelist())
-                #     zip_ref.extractall(user_file_data_path)
-                #     logger.warning(f"extract loaded garmin {activity_id} {user_file_data_path}.")
+        except Exception as err:
+            print(err)
 
+        # 解压
+        try:
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                print('unzip to ', zip_ref.namelist())
+                zip_ref.extractall(user_file_data_path)
+                # 解压成功后删除原zip，方便知晓是否全部解压成功
+                os.remove(file_path)
+                print('remove ', file_path)
+                logger.warning(f"extract loaded garmin {activity_id} {user_file_data_path}.")
         except Exception as err:
             print(err)
 
 
-    def download_tcx_local(self, activity_id, user_download_path, user_file_data_path):
+    def download_tcx_to_local(self, activity_id, user_download_path, user_file_data_path):
         try:
             file = self.downloadTcxActivity(activity_id)
             file_path = os.path.join(user_file_data_path, f"{activity_id}.tcx")
@@ -199,6 +213,70 @@ class GarminClient:
         except Exception as err:
             print(err)
 
+    @login
+    def download_to_convert(self, db):
+        all_activities = self.getAllActivities()
+        if all_activities == None or len(all_activities) == 0:
+            logger.warning("has no garmin activities.")
+            exit()
+        for activity in all_activities:
+            activity_id = activity["activityId"]
+            db.saveActivity(activity_id, 'garmin')
+
+        un_download_id_list = db.getUnDownloadActivity('garmin')
+        if un_download_id_list == None or len(un_download_id_list) == 0:
+            logger.warning("has no un download garmin activities.")
+            exit()
+        logger.warning(f"has {len(un_download_id_list)} un download garmin activities.")
+
+        ts_str = re.sub(r'(\.\d*)?', '', str(time.time())) + '000'
+        user_download_path = os.path.join(GARMIN_FIT_DIR, f"fit_{ts_str}_garmin_download")
+        print('download to', user_download_path)
+        if not os.path.exists(user_download_path):
+            os.makedirs(user_download_path)
+
+        user_file_data_path = os.path.join(user_download_path, 'files')
+        if not os.path.exists(user_file_data_path):
+            os.makedirs(user_file_data_path)
+
+        for un_download_id in un_download_id_list:
+            self.download_fit_to_convert(db, un_download_id, user_download_path, user_file_data_path)
+
+        # 压缩
+        zip_file_path = f"{user_download_path}/all.zip"
+        make_zip(zip_file_path, user_file_data_path)
+        # 转换
+        upload_zip_to_convert(zip_file_path)
+        print('download_to_convert over', user_download_path);
+
+    #  下载结果为zip，需要解压
+    def download_fit_to_convert(self, db, activity_id, user_download_path, user_file_data_path):
+        file_path = os.path.join(user_download_path, f"{activity_id}.zip")
+        try:
+            file = self.downloadFitActivity(activity_id)
+            with open(file_path, "wb") as fb:
+                fb.write(file)
+
+                os.fsync(fb.fileno())  #  确保数据写入硬盘x
+                db.updateDownloadStatus(activity_id, 'garmin')
+                logger.warning(f"download garmin to server {activity_id} {file_path} success.")
+
+        except Exception as err:
+            print(err)
+            db.updateExceptionDownloadStatus(activity_id, 'garmin')
+            logger.warning(f"download garmin to server ${activity_id} exception.")
+
+        # 解压
+        try:
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                print('unzip to ', zip_ref.namelist())
+                zip_ref.extractall(user_file_data_path)
+                # 解压成功后删除原zip，方便知晓是否全部解压成功
+                os.remove(file_path)
+                print('remove ', file_path)
+                logger.warning(f"extract loaded garmin {activity_id} {user_file_data_path}.")
+        except Exception as err:
+            print(err)
 
 class ActivityUploadFormat(Enum):
     FIT = auto()
