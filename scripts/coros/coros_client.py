@@ -9,7 +9,7 @@ from config import SYNC_CONFIG, COROS_FIT_DIR
 import re
 import time
 
-from scripts.convert_util import make_zip, upload_zip_to_convert
+from .. import convert_util
 
 logger = logging.getLogger(__name__)
 
@@ -305,9 +305,9 @@ class CorosClient:
 
         #  压缩
         zip_file_path = f"{user_download_path}/all.zip"
-        make_zip(zip_file_path, user_download_path)
+        convert_util.make_zip(zip_file_path, user_download_path)
         # 转换
-        upload_zip_to_convert(zip_file_path)
+        convert_util.upload_zip_to_convert(zip_file_path)
         print('download_to_convert over', user_download_path);
 
     # 更新数据库同步状态

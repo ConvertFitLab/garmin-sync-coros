@@ -10,7 +10,7 @@ import garth
 from garmin_url_dict import GARMIN_URL_DICT
 from config import SYNC_CONFIG, GARMIN_FIT_DIR
 
-from scripts.convert_util import upload_zip_to_convert, make_zip
+from .. import convert_util
 
 logger = logging.getLogger(__name__)
 
@@ -173,7 +173,7 @@ class GarminClient:
 
         # 压缩
         zip_file_path = f"{user_download_path}/all.zip"
-        make_zip(zip_file_path, user_file_data_path)
+        convert_util.make_zip(zip_file_path, user_file_data_path)
 
 
     def download_fit_to_local(self, activity_id, user_download_path, user_file_data_path):
@@ -244,9 +244,9 @@ class GarminClient:
 
         # 压缩
         zip_file_path = f"{user_download_path}/all.zip"
-        make_zip(zip_file_path, user_file_data_path)
+        convert_util.make_zip(zip_file_path, user_file_data_path)
         # 转换
-        upload_zip_to_convert(zip_file_path)
+        convert_util.upload_zip_to_convert(zip_file_path)
         print('download_to_convert over', user_download_path);
 
     #  下载结果为zip，需要解压
