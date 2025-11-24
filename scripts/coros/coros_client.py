@@ -1,4 +1,5 @@
 import os
+import sys
 
 import urllib3
 import json
@@ -9,7 +10,14 @@ from config import SYNC_CONFIG, COROS_FIT_DIR
 import re
 import time
 
-from .. import convert_util
+# 1. 获取当前文件 (aa.py) 的绝对路径
+# 2. os.path.dirname() 获取它所在的目录 (a/ 的绝对路径)
+# 3. 再一次 os.path.dirname() 获取项目根目录 (my_project/ 的绝对路径)
+project_root = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
+# 4. 将项目根目录添加到 Python 的模块搜索路径中
+sys.path.append(project_root)
+import convert_util
 
 logger = logging.getLogger(__name__)
 
