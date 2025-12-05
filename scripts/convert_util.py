@@ -20,7 +20,7 @@ def make_zip(target_zip_file_path, source_dir):
 #  转换提交
 def upload_zip_to_convert(zip_file_path):
     try:
-        url = "http://127.0.0.1:9000/convertViaServer"
+        url = "https://bundless.fitconverter.com/convertViaServer"
         files = {'zip_file': open(zip_file_path, 'rb')}
         data = {
             'address': 'jinicgood@163.com',
