@@ -74,7 +74,7 @@ jobs:
         if: steps.pip-cache.outputs.cache-hit != 'true'
       - name: Run Garmin or Coros Sync
         run: |
-          python scripts/garmin-sync-coros.py ${{inputs.SOURCE}} --GARMIN_EMAIL ${{inputs.GARMIN_EMAIL}} --GARMIN_PASSWORD ${{inputs.GARMIN_PASSWORD}} --GARMIN_AUTH_DOMAIN ${{inputs.GARMIN_AUTH_DOMAIN}} --GARMIN_START_TIME ${{inputs.GARMIN_START_TIME}} --COROS_EMAIL ${{inputs.COROS_EMAIL}} --COROS_PASSWORD ${{inputs.COROS_PASSWORD}} --COROS_START_TIME ${{inputs.COROS_START_TIME}} --PUSH_TOKEN ${{inputs.PUSH_TOKEN}} --DB_NAME ${{inputs.DB_NAME}}
+          python scripts/garmin-sync-coros.py ${{inputs.SOURCE}} --GARMIN_EMAIL ${{inputs.GARMIN_EMAIL}} --GARMIN_PASSWORD ${{inputs.GARMIN_PASSWORD}} --GARMIN_AUTH_DOMAIN ${{inputs.GARMIN_AUTH_DOMAIN}} --GARMIN_START_TIME ${{inputs.GARMIN_START_TIME}} --COROS_EMAIL ${{inputs.COROS_EMAIL}} --COROS_PASSWORD ${{inputs.COROS_PASSWORD}} --COROS_START_TIME ${{inputs.COROS_START_TIME}} --DB_NAME ${{inputs.DB_NAME}}
       - name: Commit && Push
         run: |
           git config --local user.email "${{ env.GITHUB_EMAIL }}"
