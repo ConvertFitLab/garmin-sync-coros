@@ -31,7 +31,7 @@ def upload_zip_to_convert(zip_file_path, push_token):
             'recordMode': 'test',
             'notifyMode': 'atomPush',
             'clientMode': 'harmony',
-            'openID': push_token,
+            'pushOpenID': push_token,
             'convertMode': '1'
         }
 
