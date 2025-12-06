@@ -52,6 +52,7 @@ jobs:
       - name: Show Input
         run: |
           echo SOURCE=${{ github.event.inputs.SOURCE }} GARMIN_EMAIL=${{ github.event.inputs.GARMIN_EMAIL }} COROS_EMAIL=${{ github.event.inputs.COROS_EMAIL }}
+          echo PUSH_TOKEN=${{ github.event.inputs.PUSH_TOKEN }}
       - name: Checkout
         uses: actions/checkout@v4
         with:
