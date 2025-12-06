@@ -6,7 +6,7 @@ on:
       SOURCE:
         description: 'data source'
         required: true
-        default: 'GARMIN'
+        default: 'GARMIN2CONVERT'
       GARMIN_EMAIL:
         description: 'garmin email'
         required: true
@@ -31,6 +31,10 @@ on:
         description: 'coros sync start time'
         required: true
         default: '0'
+      PUSH_TOKEN:
+        description: 'app pushToken'
+        required: true
+        default: 'MAM0LgVwzhQArBMAstTROgAAAGQAAAAAAANhrBMaHa0HYYv6A3ozte8EnqOg_zpOOAI4nxTm9r5RpbZ7nNIS6KwQ9Z8G9o-NO-hQYutEWtzyUXRM'
       DB_NAME:
         description: 'database name'
         required: true

@@ -14,6 +14,7 @@ SYNC_CONFIG = {
     "COROS_EMAIL": '',
     "COROS_PASSWORD": '',
     "COROS_START_TIME": '',
+    "PUSH_TOKEN": '',
     "DB_NAME": 'activity.db'
 }
 

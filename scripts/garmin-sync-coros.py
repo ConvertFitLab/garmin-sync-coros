@@ -36,14 +36,16 @@ def getClient():
     ## 初始化DB位置和下载文件位置
     init(activity_db)
 
+    PUSH_TOKEN = SYNC_CONFIG["PUSH_TOKEN"]
+
     GARMIN_EMAIL = SYNC_CONFIG["GARMIN_EMAIL"]
     GARMIN_PASSWORD = SYNC_CONFIG["GARMIN_PASSWORD"]
     GARMIN_AUTH_DOMAIN = SYNC_CONFIG["GARMIN_AUTH_DOMAIN"]
-    garminClient = GarminClient(GARMIN_EMAIL, GARMIN_PASSWORD, GARMIN_AUTH_DOMAIN)
+    garminClient = GarminClient(GARMIN_EMAIL, GARMIN_PASSWORD, GARMIN_AUTH_DOMAIN, PUSH_TOKEN)
 
     COROS_EMAIL = SYNC_CONFIG["COROS_EMAIL"]
     COROS_PASSWORD = SYNC_CONFIG["COROS_PASSWORD"]
-    corosClient = CorosClient(COROS_EMAIL, COROS_PASSWORD)
+    corosClient = CorosClient(COROS_EMAIL, COROS_PASSWORD, PUSH_TOKEN)
 
     return garminClient, corosClient, activity_db
 

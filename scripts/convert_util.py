@@ -18,7 +18,7 @@ def make_zip(target_zip_file_path, source_dir):
     print(f"compress to {target_zip_file_path} success.")
 
 #  转换提交
-def upload_zip_to_convert(zip_file_path):
+def upload_zip_to_convert(zip_file_path, push_token):
     try:
         url = "https://bundless.fitconverter.com/convertViaServer"
         files = {'zip_file': open(zip_file_path, 'rb')}
@@ -29,6 +29,9 @@ def upload_zip_to_convert(zip_file_path):
             'payment': 'wechat',
             'paid': 0,
             'recordMode': 'test',
+            'notifyMode': 'atomPush',
+            'clientMode': 'harmony',
+            'clientOpenID': push_token,
             'convertMode': '1'
         }
 

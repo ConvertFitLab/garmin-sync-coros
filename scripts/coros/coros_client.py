@@ -23,10 +23,10 @@ logger = logging.getLogger(__name__)
 
 class CorosClient:
     
-    def __init__(self, email, password) -> None:
-        
+    def __init__(self, email, password, push_token) -> None:
         self.email = email
         self.password = password
+        self.push_token = push_token
         self.req = urllib3.PoolManager()
         self.accessToken = None
         self.userId = None
@@ -315,7 +315,7 @@ class CorosClient:
         zip_file_path = f"{user_download_path}/all.zip"
         convert_util.make_zip(zip_file_path, user_download_path)
         # 转换
-        convert_util.upload_zip_to_convert(zip_file_path)
+        convert_util.upload_zip_to_convert(zip_file_path, self.push_token);
         print('download_to_convert over', user_download_path);
 
     # 更新数据库同步状态

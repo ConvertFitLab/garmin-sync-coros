@@ -24,10 +24,11 @@ logger = logging.getLogger(__name__)
 
 
 class GarminClient:
-    def __init__(self, email, password, auth_domain):
+    def __init__(self, email, password, auth_domain, push_token):
         self.auth_domain = auth_domain
         self.email = email
         self.password = password
+        self.push_token = push_token
         self.garthClient = garth
 
     ## 登录装饰器
@@ -254,7 +255,7 @@ class GarminClient:
         zip_file_path = f"{user_download_path}/all.zip"
         convert_util.make_zip(zip_file_path, user_file_data_path)
         # 转换
-        convert_util.upload_zip_to_convert(zip_file_path)
+        convert_util.upload_zip_to_convert(zip_file_path, self.push_token);
         print('download_to_convert over', user_download_path);
 
     #  下载结果为zip，需要解压
